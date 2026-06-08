@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foci Group — War Room Dashboards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="bmark">FG</div>
+    <div><div class="btxt">FOCI GROUP</div><div class="bsub">War Room Dashboards</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('mon',this)"><div class="tdot" style="background:#818CF8"></div> Tender</button>
+    <button class="tab" onclick="switchTab('tue',this)"><div class="tdot" style="background:#F59E0B"></div>Project Recovery</button>
+    <button class="tab" onclick="switchTab('wed',this)"><div class="tdot" style="background:#10B981"></div>Cashflow</button>
+    <button class="tab" onclick="switchTab('fri',this)"><div class="tdot" style="background:#3B82F6"></div>CEO Strategic</button>
+  </div>
+  <div class="topright">
+    <span style="font-size:12px;color:rgba(255,255,255,.4)">Week of:</span>
+    <input class="week-input" type="text" placeholder="e.g. 5 May 2026">
+  </div>
+</div>
+
+<!-- MONDAY -->
+<div class="panel active" id="panel-mon">
+  <div class="phdr">
+    <div class="picon" style="background:#EEF0FF">📋</div>
+    <div><div class="ptitle">Tender War Room</div><div class="psub">Every Monday · 09:00 · No exceptions</div></div>
+    <div class="chair">Chair: Commercial &amp; Bid Manager</div>
+  </div>
+  <div class="kpis">
+    <div class="kc kn"><div class="klbl">Bids in pipeline</div><div class="kval" id="m-pipeline">0</div><div class="ktgt">all active bids</div></div>
+    <div class="kc kgold"><div class="klbl">Submitted MTD</div><div class="kval" id="m-submitted">0</div><div class="ktgt">target: 12–18</div></div>
+    <div class="kc kg"><div class="klbl">GO decisions</div><div class="kval" id="m-go">0</div><div class="ktgt">score ≥ 60</div></div>
+    <div class="kc kr"><div class="klbl">No-Go / review</div><div class="kval" id="m-nogo">0</div><div class="ktgt">score &lt; 60</div></div>
+    <div class="kc kb"><div class="klbl">Pipeline value</div><div class="kval" id="m-pipeval" style="font-size:20px">R 0</div><div class="ktgt">GO bids only</div></div>
+  </div>
+  <div class="g2">
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Add bid to register</div></div>
+        <div class="fr">
+          <div class="fg" style="flex:2"><label>Tender description</label><input type="text" id="bid-name" placeholder="e.g. Majuba Outage Works"></div>
+          <div class="fg"><label>Client</label><input type="text" id="bid-client" placeholder="e.g. Eskom"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Est. value (R)</label><input type="number" id="bid-val" placeholder="0"></div>
+          <div class="fg"><label>Deadline</label><input type="text" id="bid-deadline" placeholder="DD Mon YYYY"></div>
+          <div class="fg"><label>Score /100</label><input type="number" id="bid-score" min="0" max="100" placeholder="0–100"></div>
+          <div class="fg"><label>Status</label><select id="bid-status"><option>In preparation</option><option>Submitted</option><option>Pending award</option><option>Awarded</option><option>Lost</option></select></div>
+        </div>
+        <div style="display:flex;gap:8px"><button class="btn btnp" onclick="addBid()">Add bid</button><button class="btn" onclick="clearBidForm()">Clear</button></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Bid register</div><span class="badge bnavy" id="bid-count">0 bids</span></div>
+        <div style="overflow-x:auto">
+          <table id="bid-table">
+            <thead><tr><th>Tender</th><th>Client</th><th>Value</th><th>Deadline</th><th>Score</th><th>Decision</th><th>Status</th><th></th></tr></thead>
+            <tbody id="bid-body"><tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Go / No-Go review queue</div></div>
+        <div id="gng-list"><div style="color:var(--faint);font-size:13px;padding:8px 0">Borderline bids (score &lt; 60) appear here automatically</div></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Bid library completion</div><button class="btn bsm" onclick="toggleLib()">Update %</button></div>
+        <div>
+          <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">Corporate returnables</div><div class="prog" style="margin-top:5px"><div class="pf pfg" id="lc-bar" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="lc-pct">0%</span></div>
+          <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">CV bank (all roles)</div><div class="prog" style="margin-top:5px"><div class="pf pfa" id="lv-bar" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="lv-pct">0%</span></div>
+          <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">Method statements</div><div class="prog" style="margin-top:5px"><div class="pf pfa" id="lm-bar" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="lm-pct">0%</span></div>
+          <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">SHE plans</div><div class="prog" style="margin-top:5px"><div class="pf pfr" id="ls-bar" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="ls-pct">0%</span></div>
+          <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">Programme templates</div><div class="prog" style="margin-top:5px"><div class="pf pfr" id="lp-bar" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="lp-pct">0%</span></div>
+        </div>
+        <div id="lib-edit" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+          <div class="fr">
+            <div class="fg"><label>Corp %</label><input type="number" id="le-c" min="0" max="100" placeholder="0"></div>
+            <div class="fg"><label>CVs %</label><input type="number" id="le-v" min="0" max="100" placeholder="0"></div>
+            <div class="fg"><label>Methods %</label><input type="number" id="le-m" min="0" max="100" placeholder="0"></div>
+            <div class="fg"><label>SHE %</label><input type="number" id="le-s" min="0" max="100" placeholder="0"></div>
+            <div class="fg"><label>Progs %</label><input type="number" id="le-p" min="0" max="100" placeholder="0"></div>
+          </div>
+          <button class="btn btnp bsm" onclick="updateLib()">Save</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Monday actions</div></div>
+        <ul class="cl">
+          <li><input type="checkbox"><span>Review all open tenders in register</span></li>
+          <li><input type="checkbox"><span>Confirm bid resources allocated for week</span></li>
+          <li><input type="checkbox"><span>Review upcoming deadlines — next 10 days</span></li>
+          <li><input type="checkbox"><span>Score any new opportunities (Go/No-Go)</span></li>
+          <li><input type="checkbox"><span>Update bid library with new templates</span></li>
+          <li><input type="checkbox"><span>Confirm associate bench availability this week</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TUESDAY -->
+<div class="panel" id="panel-tue">
+  <div class="phdr">
+    <div class="picon" style="background:#FFFBEB">🏗️</div>
+    <div><div class="ptitle">Project Commercial Recovery</div><div class="psub">Every Tuesday · 09:00 · No exceptions</div></div>
+    <div class="chair">Chair: Operations Coordinator</div>
+  </div>
+  <div class="kpis">
+    <div class="kc kn"><div class="klbl">Active projects</div><div class="kval" id="t-active">3</div></div>
+    <div class="kc kr"><div class="klbl">Blockers open</div><div class="kval cr" id="t-blockers">2</div><div class="ktgt">requires action</div></div>
+    <div class="kc ka"><div class="klbl">CEs / claims open</div><div class="kval ca" id="t-ces">3</div></div>
+    <div class="kc kgold"><div class="klbl">CE value outstanding</div><div class="kval" id="t-ceval" style="font-size:18px">R 1 095 000</div></div>
+    <div class="kc kg"><div class="klbl">Projects on programme</div><div class="kval" id="t-onprog">1 / 3</div><div class="ktgt">green status</div></div>
+  </div>
+  <div class="g2">
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Project status — RAG</div><button class="btn bsm btnp" onclick="addProject()">+ Add project</button></div>
+        <div id="project-cards">
+          <div class="pb"><div class="pbh"><div class="rag ra" id="dot-maj"></div><div class="pbn">Majuba Power Station</div><select style="width:90px;font-size:12px;padding:4px 6px" onchange="setRAG('maj',this.value)"><option value="a">Amber</option><option value="g">Green</option><option value="r">Red</option></select></div><div style="font-size:12px;color:var(--muted);margin-bottom:8px">Eskom · Certificate approval delayed · 3 CEs open</div><div class="prog"><div class="pf pfa" id="bar-maj" style="width:55%"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:4px"><span>Programme: 55%</span><span>CE value: R 380 000</span></div></div>
+          <div class="pb"><div class="pbh"><div class="rag rr" id="dot-cam"></div><div class="pbn">Camden Power Station</div><select style="width:90px;font-size:12px;padding:4px 6px" onchange="setRAG('cam',this.value)"><option value="r">Red</option><option value="a">Amber</option><option value="g">Green</option></select></div><div style="font-size:12px;color:var(--red);margin-bottom:8px;font-weight:500">⚠ Scope dispute · NEC CE unsigned · ESCALATE TO DIRECTOR</div><div class="prog"><div class="pf pfr" id="bar-cam" style="width:30%"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:4px"><span>Programme: 30%</span><span>CE value: R 620 000</span></div></div>
+          <div class="pb"><div class="pbh"><div class="rag rg" id="dot-ing"></div><div class="pbn">Ingula Pumped Storage</div><select style="width:90px;font-size:12px;padding:4px 6px" onchange="setRAG('ing',this.value)"><option value="g">Green</option><option value="a">Amber</option><option value="r">Red</option></select></div><div style="font-size:12px;color:var(--muted);margin-bottom:8px">Eskom · On programme · Certificate submitted</div><div class="prog"><div class="pf pfg" id="bar-ing" style="width:72%"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:4px"><span>Programme: 72%</span><span>CE value: R 95 000</span></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">NEC Compensation Events</div></div>
+        <div class="fr" style="margin-bottom:10px">
+          <div class="fg"><label>Project</label><input type="text" id="ce-proj" placeholder="Project"></div>
+          <div class="fg" style="flex:2"><label>CE description</label><input type="text" id="ce-desc" placeholder="Compensation event description"></div>
+          <div class="fg"><label>Value R</label><input type="number" id="ce-val" placeholder="0"></div>
+          <div class="fg"><label>Age (days)</label><input type="number" id="ce-age" placeholder="0"></div>
+          <div class="fg" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btnp" onclick="addCE()">Add CE</button></div>
+        </div>
+        <table><thead><tr><th>Project</th><th>Description</th><th>Value</th><th>Age</th><th>Action</th><th></th></tr></thead>
+        <tbody id="ce-body">
+          <tr><td>Majuba</td><td>Additional scope — thermal insulation</td><td>R 380 000</td><td>14 days</td><td><span class="badge ba">Submit</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+          <tr><td>Camden</td><td>Delayed access — client instruction</td><td>R 620 000</td><td>28 days</td><td><span class="badge bnogo">Escalate</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+          <tr><td>Ingula</td><td>Design variation — pump housing</td><td>R 95 000</td><td>7 days</td><td><span class="badge bgo">Approved</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Blocker register</div></div>
+        <div class="fr" style="margin-bottom:10px">
+          <div class="fg"><label>Project</label><input type="text" id="blk-proj" placeholder="Project"></div>
+          <div class="fg" style="flex:2"><label>Blocker</label><input type="text" id="blk-desc" placeholder="Describe the blocker"></div>
+          <div class="fg"><label>Owner</label><select id="blk-own"><option>Director</option><option>Ops Coord</option><option>Finance</option><option>Client</option></select></div>
+          <div class="fg" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btnp" onclick="addBlocker()">Add</button></div>
+        </div>
+        <div id="blocker-list">
+          <div class="ri"><div class="rag rr" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">Camden — Client has not signed CE #004</div><div class="rsub">Owner: Director · Day 28 · Escalate to Eskom SPM today</div></div></div>
+          <div class="ri"><div class="rag ra" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">Majuba — Inspection certificate outstanding</div><div class="rsub">Owner: Ops Coord · Day 12 · Email chase today</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Client escalation matrix</div></div>
+        <table><thead><tr><th>Project</th><th>Issue</th><th>Level</th><th>Next action</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td>Camden</td><td>CE approval</td><td><span class="badge bnogo">Director</span></td><td>Call Eskom SPM</td><td>This week</td></tr>
+          <tr><td>Majuba</td><td>Certificate</td><td><span class="badge ba">Ops Coord</span></td><td>Email chase</td><td>Today</td></tr>
+        </tbody></table>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Tuesday actions</div></div>
+        <ul class="cl">
+          <li><input type="checkbox"><span>Update programme % complete for all active projects</span></li>
+          <li><input type="checkbox"><span>Submit all pending CEs to client this week</span></li>
+          <li><input type="checkbox"><span>Escalate any CE &gt; 21 days outstanding to Director</span></li>
+          <li><input type="checkbox"><span>Update blocker register — assign owners</span></li>
+          <li><input type="checkbox"><span>Confirm mobilisation readiness for next award</span></li>
+          <li><input type="checkbox"><span>SHEQ — confirm no incidents or open observations</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WEDNESDAY -->
+<div class="panel" id="panel-wed">
+  <div class="phdr">
+    <div class="picon" style="background:#ECFDF5">💰</div>
+    <div><div class="ptitle">Cashflow &amp; Debtors Review</div><div class="psub">Every Wednesday · 09:00 · No exceptions</div></div>
+    <div class="chair">Chair: Finance Controller</div>
+  </div>
+  <div class="kpis">
+    <div class="kc kg"><div class="klbl">Cash on hand today (R)</div><input type="number" id="w-cash" placeholder="0" oninput="calcNet()" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;border:none;padding:4px 0 0;width:100%;background:transparent;color:var(--navy)"></div>
+    <div class="kc ka"><div class="klbl">Outstanding debtors (R)</div><input type="number" id="w-deb" placeholder="0" oninput="calcNet()" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;border:none;padding:4px 0 0;width:100%;background:transparent;color:var(--navy)"></div>
+    <div class="kc kb"><div class="klbl">Expected receipts — month (R)</div><input type="number" id="w-exp" placeholder="0" oninput="calcNet()" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;border:none;padding:4px 0 0;width:100%;background:transparent;color:var(--navy)"></div>
+    <div class="kc kr"><div class="klbl">Fixed overhead — month (R)</div><input type="number" id="w-oh" placeholder="0" oninput="calcNet()" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;border:none;padding:4px 0 0;width:100%;background:transparent;color:var(--navy)"></div>
+    <div class="kc kn"><div class="klbl">Net projected position</div><div class="kval" id="w-net" style="font-size:20px">Enter above</div><div class="ktgt" id="w-ns"></div></div>
+  </div>
+  <div class="g2">
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Debtor register — outstanding invoices</div><span style="font-size:12px;color:var(--muted)">Total: <strong id="deb-total" style="color:var(--red)">R 2 560 000</strong></span></div>
+        <div class="fr" style="margin-bottom:10px">
+          <div class="fg"><label>Client</label><input type="text" id="deb-cl" placeholder="Client name"></div>
+          <div class="fg"><label>Invoice #</label><input type="text" id="deb-inv" placeholder="INV-2026-XXX"></div>
+          <div class="fg"><label>Amount R</label><input type="number" id="deb-amt" placeholder="0"></div>
+          <div class="fg"><label>Days overdue</label><input type="number" id="deb-age" placeholder="0"></div>
+          <div class="fg" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btnp" onclick="addDebtor()">Add</button></div>
+        </div>
+        <table><thead><tr><th>Client</th><th>Invoice</th><th>Amount</th><th>Age</th><th>Status</th><th></th></tr></thead>
+        <tbody id="deb-body">
+          <tr><td>Eskom — Majuba</td><td>INV-2026-041</td><td>R 1 250 000</td><td><span class="badge ba">32 days</span></td><td>Certificate submitted</td><td><button class="btn bsm btnd" onclick="markPaid(this)">Paid ✓</button></td></tr>
+          <tr><td>Eskom — Camden</td><td>INV-2026-038</td><td>R 890 000</td><td><span class="badge bnogo">51 days</span></td><td>Dispute — CE pending</td><td><button class="btn bsm btnd" onclick="markPaid(this)">Paid ✓</button></td></tr>
+          <tr><td>Eskom — Ingula</td><td>INV-2026-044</td><td>R 420 000</td><td><span class="badge bgo">8 days</span></td><td>Submitted — normal</td><td><button class="btn bsm btnd" onclick="markPaid(this)">Paid ✓</button></td></tr>
+        </tbody></table>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">IT &amp; retainer revenue — MTD</div></div>
+        <div class="cfr"><span>IT SLA / support contracts</span><input type="number" placeholder="R 0" style="font-size:13px;padding:5px 8px" oninput="calcRet()"><span class="ng" id="r1">—</span></div>
+        <div class="cfr"><span>Hosting &amp; cybersecurity</span><input type="number" placeholder="R 0" style="font-size:13px;padding:5px 8px" oninput="calcRet()"><span class="ng" id="r2">—</span></div>
+        <div class="cfr"><span>Engineering retainers</span><input type="number" placeholder="R 0" style="font-size:13px;padding:5px 8px" oninput="calcRet()"><span class="ng" id="r3">—</span></div>
+        <div class="cfr" style="border-top:1px solid var(--border);margin-top:4px;padding-top:10px"><span style="font-weight:600">Total retainer MTD</span><span></span><span class="ng" id="ret-total" style="font-size:15px">R 0</span></div>
+        <div style="font-size:11px;color:var(--faint);margin-top:8px">Target: R 30 000 → R 120 000+ per month</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Funding lines — status</div></div>
+        <div class="furl"><div class="fulbl">Invoice discounting facility</div><select style="width:145px;font-size:12px;padding:5px 8px"><option>Not set up</option><option>In discussion</option><option>Active</option><option>Drawn down</option></select></div>
+        <div class="furl"><div class="fulbl">PO / Mobilisation finance</div><select style="width:145px;font-size:12px;padding:5px 8px"><option>Not set up</option><option>In discussion</option><option>Active</option><option>Drawn down</option></select></div>
+        <div class="furl"><div class="fulbl">Revolving bid fund</div><select style="width:145px;font-size:12px;padding:5px 8px"><option>Not set up</option><option>In discussion</option><option>Active (R 100k)</option></select></div>
+        <div class="furl"><div class="fulbl">Supplier credit lines</div><select style="width:145px;font-size:12px;padding:5px 8px"><option>Not set up</option><option>Partial</option><option>Active — 30 days</option><option>Active — 60 days</option></select></div>
+        <div class="furl"><div class="fulbl">Bank overdraft facility</div><select style="width:145px;font-size:12px;padding:5px 8px"><option>Not set up</option><option>Active — not drawn</option><option>Drawn down</option></select></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Wednesday actions</div></div>
+        <ul class="cl">
+          <li><input type="checkbox"><span>Chase all invoices &gt; 30 days — phone call, not email</span></li>
+          <li><input type="checkbox"><span>Submit outstanding certificates to Eskom PM</span></li>
+          <li><input type="checkbox"><span>Confirm Majuba certificate approval date</span></li>
+          <li><input type="checkbox"><span>Escalate Camden dispute — Director to call client</span></li>
+          <li><input type="checkbox"><span>Confirm supplier payment terms this week</span></li>
+          <li><input type="checkbox"><span>Review month-end cashflow forecast vs actuals</span></li>
+          <li><input type="checkbox"><span>Update all funding line statuses</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FRIDAY -->
+<div class="panel" id="panel-fri">
+  <div class="phdr">
+    <div class="picon" style="background:#EFF6FF">🎯</div>
+    <div><div class="ptitle">CEO Strategic Review</div><div class="psub">Every Friday · 10:00 · No exceptions</div></div>
+    <div class="chair">Chair: Director</div>
+  </div>
+  <div class="kpis">
+    <div class="kc kn"><div class="klbl">Bids submitted MTD</div><div class="kval" id="f-bids">—</div><div class="ktgt">target ≥ 12</div></div>
+    <div class="kc kgold"><div class="klbl">Overhead ratio</div><div class="kval" id="f-ratio">—</div><div class="ktgt">target &lt; 18%</div></div>
+    <div class="kc kg"><div class="klbl">Retainer clients</div><div class="kval" id="f-retc">—</div><div class="ktgt">target 3–5</div></div>
+    <div class="kc kb"><div class="klbl">War rooms held (wk)</div><div class="kval" id="f-wroom">—</div><div class="ktgt">target 4/4</div></div>
+    <div class="kc ka"><div class="klbl">Awards pending</div><div class="kval" id="f-awards">—</div></div>
+  </div>
+  <div class="g2">
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Monthly KPI scorecard — enter actuals</div></div>
+        <div class="scr scrhdr"><span>KPI</span><span style="text-align:right">Actual</span><span style="text-align:right">Target</span></div>
+        <div class="scr"><span>Bids submitted</span><input type="number" id="kf-b" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">12–18/month</span></div>
+        <div class="scr"><span>GO approvals</span><input type="number" id="kf-go" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">≥ 80% of bids</span></div>
+        <div class="scr"><span>Pipeline value (R)</span><input type="number" id="kf-pipe" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">R 80M+</span></div>
+        <div class="scr"><span>Revenue received (R)</span><input type="number" id="kf-rev" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">Per target</span></div>
+        <div class="scr"><span>Fixed overhead (R)</span><input type="number" id="kf-oh" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">&lt; reduction target</span></div>
+        <div class="scr"><span>Collections (R)</span><input type="number" id="kf-coll" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">100% of certified</span></div>
+        <div class="scr"><span>IT retainer revenue (R)</span><input type="number" id="kf-it" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">R 30k → R 120k+</span></div>
+        <div class="scr"><span>Retainer clients (#)</span><input type="number" id="kf-rc" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">3–5 clients</span></div>
+        <div class="scr"><span>Awards pending (#)</span><input type="number" id="kf-aw" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">Track</span></div>
+        <div class="scr"><span>War rooms held</span><input type="number" id="kf-wr" min="0" max="4" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">4 per week</span></div>
+        <div class="scr" style="border-top:1.5px solid var(--border);margin-top:6px;padding-top:12px">
+          <span style="font-weight:600">Overhead ratio (auto)</span><span></span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;text-align:right" id="f-calc">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Decisions required from CEO</div><button class="btn bsm btnp" onclick="document.getElementById('dec-form').style.display='flex'">+ Add</button></div>
+        <div class="fr" id="dec-form" style="display:none;margin-bottom:12px">
+          <div class="fg" style="flex:3"><label>Decision required</label><input type="text" id="dec-txt" placeholder="Describe the decision needed..."></div>
+          <div class="fg"><label>Priority</label><select id="dec-pri"><option>High</option><option>Medium</option><option>Low</option></select></div>
+          <div class="fg" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btng" onclick="saveDecision()">Save</button></div>
+        </div>
+        <ul class="cl" id="decision-list">
+          <li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Approve Camden escalation — client call required this week</span></li>
+          <li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Sign off Commercial &amp; Bid Manager appointment</span></li>
+          <li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Review overhead audit — confirm reductions</span></li>
+          <li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Approve revolving bid fund R 100 000</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Strategic pipeline — 30-day view</div></div>
+        <div class="ri"><div class="rag rg" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">Bid machine — building on track</div><div class="rsub">Library 40% · Associate bench forming · First bids in</div></div></div>
+        <div class="ri"><div class="rag rr" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">Eskom cash release — critical this week</div><div class="rsub">Camden blocker must resolve · Director call to Eskom SPM</div></div></div>
+        <div class="ri"><div class="rag ra" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">Capital partner discussions — begin</div><div class="rsub">Invoice discounting — first meeting this month</div></div></div>
+        <div class="ri"><div class="rag rb" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">IT retainer pipeline — 2 prospects</div><div class="rsub">Proposals in progress · Close target: this month</div></div></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Friday CEO actions</div></div>
+        <ul class="cl">
+          <li><input type="checkbox"><span>Review KPI scorecard — note all variances vs target</span></li>
+          <li><input type="checkbox"><span>Make ALL pending decisions — zero carry-overs</span></li>
+          <li><input type="checkbox"><span>Call key client (Eskom SPM) — relationship management</span></li>
+          <li><input type="checkbox"><span>Confirm next week's bid capacity and associate bench</span></li>
+          <li><input type="checkbox"><span>Set priorities for all four departments — communicate</span></li>
+          <li><input type="checkbox"><span>Review cash position — confirm next week payment plan</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="fnote">
+    <strong style="color:var(--gold);white-space:nowrap">CEO principle:</strong>
+    <span>If this week's decisions are still on next week's list, something is wrong. No carry-overs. No deferrals. Decide and move. The biggest risk is not the market — it is slipping back into reactive firefighting.</span>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
