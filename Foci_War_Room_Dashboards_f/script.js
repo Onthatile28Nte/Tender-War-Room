@@ -191,7 +191,7 @@ async function loadContacts() {
 }
 
 loadContacts();
-
+window.deleteBid = deleteBid;
 window.addBid = addBid;
 window.deleteBid = deleteBid;
 window.loadBids = loadBids;
