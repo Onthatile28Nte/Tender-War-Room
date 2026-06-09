@@ -10,7 +10,7 @@ async function addBid() {
   const bid = {
     name: n,
     client: document.getElementById('bid-client').value || '—',
-    value: parseInt(document.getElementById('bid-val').value) || 0,
+    value: parseFloat(document.getElementById('bid-val').value) || null,
     deadline: document.getElementById('bid-deadline').value || '—',
     score: parseInt(document.getElementById('bid-score').value) || 0,
     status: document.getElementById('bid-status').value
@@ -31,8 +31,28 @@ async function addBid() {
 }
 
 function clearBidForm(){['bid-name','bid-client','bid-val','bid-deadline','bid-score'].forEach(id=>document.getElementById(id).value='')}
-function renderBids(){const body=document.getElementById('bid-body');if(!bids.length){body.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr>';}else{body.innerHTML=bids.map((b,i)=>`<tr><td style="font-weight:500">${b.name}</td><td>${b.client}</td><td>${b.val?'R '+b.val.toLocaleString():'—'}</td><td>${b.dl}</td><td><strong>${b.score}/100</strong></td><td>${b.score>=60?'<span class="badge bgo">GO</span>':b.score>0?'<span class="badge bnogo">No-Go</span>':'—'}</td><td><span class="badge bb">${b.status}</span></td><td><button class="btn bsm btnd" onclick="bids.splice(${i},1);renderBids()">✕</button></td></tr>`).join('');}updateMonKPIs();renderGNG()}
-function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;document.getElementById('m-pipeval').textContent=go.length?'R '+Math.round(go.reduce((s,b)=>s+b.val,0)/1000)+'k':'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
+function renderBids(){
+  const body=document.getElementById('bid-body');
+  if(!bids.length){
+    body.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr>';
+  } else {
+    body.innerHTML=bids.map((b)=>`<tr>
+      <td style="font-weight:500">${b.name}</td>
+      <td>${b.client}</td>
+      <td>${b.value != null ? 'R '+Number(b.value).toLocaleString() : '—'}</td>
+      <td>${b.deadline || '—'}</td>
+      <td><strong>${b.score}/100</strong></td>
+      <td>${b.score>=60?'<span class="badge bgo">GO</span>':b.score>0?'<span class="badge bnogo">No-Go</span>':'—'}</td>
+      <td><span class="badge bb">${b.status}</span></td>
+      <td><button class="btn bsm btnd" onclick="deleteBid(${b.id})">✕</button></td>
+    </tr>`).join('');
+  }
+  updateMonKPIs();
+  renderGNG();
+}
+
+
+function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;document.getElementById('m-pipeval').textContent=go.length?'R '+Math.round(go.reduce((s,b)=>s+b.value,0)/1000)+'k':'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
 function renderGNG(){const low=bids.filter(b=>b.score>0&&b.score<60);const el=document.getElementById('gng-list');el.innerHTML=low.length?low.map(b=>`<div class="ri"><div class="rag ra" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">${b.name}</div><div class="rsub">${b.client} · Score: ${b.score}/100 — review or improve</div></div><span class="badge ba">Review</span></div>`).join(''):'<div style="color:var(--faint);font-size:13px;padding:8px 0">No borderline bids requiring review</div>'}
 function toggleLib(){const e=document.getElementById('lib-edit');e.style.display=e.style.display==='none'?'block':'none'}
 function updateLib(){[['c','lc'],['v','lv'],['m','lm'],['s','ls'],['p','lp']].forEach(([k,id])=>{const v=Math.min(100,Math.max(0,parseInt(document.getElementById('le-'+k).value)||0));document.getElementById(id+'-bar').style.width=v+'%';document.getElementById(id+'-bar').className='pf '+(v>=70?'pfg':v>=40?'pfa':'pfr');document.getElementById(id+'-pct').textContent=v+'%'});document.getElementById('lib-edit').style.display='none'}
