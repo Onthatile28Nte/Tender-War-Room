@@ -77,3 +77,22 @@ async function loadBids() {
 }
 
 loadBids();
+
+window.addBid = addBid;
+window.loadBids = loadBids;
+window.clearBidForm = clearBidForm;
+window.renderBids = renderBids;
+window.toggleLib = toggleLib;
+window.updateLib = updateLib;
+window.setRAG = setRAG;
+window.addProject = addProject;
+window.addCE = addCE;
+window.addBlocker = addBlocker;
+window.calcNet = calcNet;
+window.calcRet = calcRet;
+window.markPaid = markPaid;
+window.addDebtor = addDebtor;
+window.updateFri = updateFri;
+window.saveDecision = saveDecision;
+window.renderDecisions = renderDecisions;
+window.switchTab = switchTab;
