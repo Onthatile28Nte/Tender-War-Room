@@ -1,6 +1,34 @@
+import { supabase } from "./supabase.js";
+
 function switchTab(id,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('panel-'+id).classList.add('active')}
 const bids=[];
-function addBid(){const n=document.getElementById('bid-name').value.trim();if(!n)return;bids.push({name:n,client:document.getElementById('bid-client').value||'—',val:parseInt(document.getElementById('bid-val').value)||0,dl:document.getElementById('bid-deadline').value||'—',score:parseInt(document.getElementById('bid-score').value)||0,status:document.getElementById('bid-status').value});renderBids();clearBidForm()}
+async function addBid() {
+  const n = document.getElementById('bid-name').value.trim();
+ 
+  if (!n) return;
+ 
+  const bid = {
+    name: n,
+    client: document.getElementById('bid-client').value || '—',
+    value: parseInt(document.getElementById('bid-val').value) || 0,
+    deadline: document.getElementById('bid-deadline').value || '—',
+    score: parseInt(document.getElementById('bid-score').value) || 0,
+    status: document.getElementById('bid-status').value
+  };
+ 
+  const { error } = await supabase
+    .from('bids')
+    .insert([bid]);
+ 
+  if (error) {
+    console.error(error);
+    alert('Failed to save bid');
+    return;
+  }
+ 
+  alert('Bid saved');
+}
+
 function clearBidForm(){['bid-name','bid-client','bid-val','bid-deadline','bid-score'].forEach(id=>document.getElementById(id).value='')}
 function renderBids(){const body=document.getElementById('bid-body');if(!bids.length){body.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr>';}else{body.innerHTML=bids.map((b,i)=>`<tr><td style="font-weight:500">${b.name}</td><td>${b.client}</td><td>${b.val?'R '+b.val.toLocaleString():'—'}</td><td>${b.dl}</td><td><strong>${b.score}/100</strong></td><td>${b.score>=60?'<span class="badge bgo">GO</span>':b.score>0?'<span class="badge bnogo">No-Go</span>':'—'}</td><td><span class="badge bb">${b.status}</span></td><td><button class="btn bsm btnd" onclick="bids.splice(${i},1);renderBids()">✕</button></td></tr>`).join('');}updateMonKPIs();renderGNG()}
 function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;document.getElementById('m-pipeval').textContent=go.length?'R '+Math.round(go.reduce((s,b)=>s+b.val,0)/1000)+'k':'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
@@ -22,3 +50,28 @@ function updateFri(){const b=parseInt(document.getElementById('kf-b').value)||0;
 const customDecs=[];
 function saveDecision(){const t=document.getElementById('dec-txt').value.trim();if(!t)return;customDecs.push({t,p:document.getElementById('dec-pri').value});renderDecisions();document.getElementById('dec-txt').value='';document.getElementById('dec-form').style.display='none'}
 function renderDecisions(){const fixed=`<li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Approve Camden escalation — client call required this week</span></li><li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Sign off Commercial &amp; Bid Manager appointment</span></li><li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Review overhead audit — confirm reductions</span></li><li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Approve revolving bid fund R 100 000</span></li>`;document.getElementById('decision-list').innerHTML=fixed+customDecs.map(d=>{const cls=d.p==='High'?'bnogo':d.p==='Medium'?'ba':'bgo';return`<li><input type="checkbox"><span><span class="badge ${cls}" style="margin-right:6px">${d.p}</span>${d.t}</span></li>`}).join('')}
+
+async function loadBids() {
+
+  const { data, error } = await supabase
+
+    .from('bids')
+
+    .select('*');
+ 
+  if (error) {
+
+    console.error(error);
+
+    return;
+
+  }
+ 
+  bids.length = 0;
+ 
+  data.forEach(b => bids.push(b));
+ 
+  renderBids();
+
+}
+ 
