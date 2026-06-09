@@ -27,6 +27,7 @@ async function addBid() {
   }
  
   alert('Bid saved');
+  await loadBids();
 }
 
 function clearBidForm(){['bid-name','bid-client','bid-val','bid-deadline','bid-score'].forEach(id=>document.getElementById(id).value='')}
@@ -74,4 +75,5 @@ async function loadBids() {
   renderBids();
 
 }
- 
+
+loadBids();
