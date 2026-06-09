@@ -52,6 +52,11 @@ const customDecs=[];
 function saveDecision(){const t=document.getElementById('dec-txt').value.trim();if(!t)return;customDecs.push({t,p:document.getElementById('dec-pri').value});renderDecisions();document.getElementById('dec-txt').value='';document.getElementById('dec-form').style.display='none'}
 function renderDecisions(){const fixed=`<li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Approve Camden escalation — client call required this week</span></li><li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Sign off Commercial &amp; Bid Manager appointment</span></li><li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Review overhead audit — confirm reductions</span></li><li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Approve revolving bid fund R 100 000</span></li>`;document.getElementById('decision-list').innerHTML=fixed+customDecs.map(d=>{const cls=d.p==='High'?'bnogo':d.p==='Medium'?'ba':'bgo';return`<li><input type="checkbox"><span><span class="badge ${cls}" style="margin-right:6px">${d.p}</span>${d.t}</span></li>`}).join('')}
 
+async function deleteBid(id){
+  await supabase.from('bids').delete().eq('id', id);
+  await loadBids();
+}
+
 async function loadBids() {
 
   const { data, error } = await supabase
@@ -191,7 +196,6 @@ async function loadContacts() {
 }
 
 loadContacts();
-window.deleteBid = deleteBid;
 window.addBid = addBid;
 window.deleteBid = deleteBid;
 window.loadBids = loadBids;
