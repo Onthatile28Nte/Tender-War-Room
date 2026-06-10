@@ -1,9 +1,58 @@
+import { supabase } from "./supabase.js";
+
 function switchTab(id,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('panel-'+id).classList.add('active')}
 const bids=[];
-function addBid(){const n=document.getElementById('bid-name').value.trim();if(!n)return;bids.push({name:n,client:document.getElementById('bid-client').value||'—',val:parseInt(document.getElementById('bid-val').value)||0,dl:document.getElementById('bid-deadline').value||'—',score:parseInt(document.getElementById('bid-score').value)||0,status:document.getElementById('bid-status').value});renderBids();clearBidForm()}
+async function addBid() {
+  const n = document.getElementById('bid-name').value.trim();
+ 
+  if (!n) return;
+ 
+  const bid = {
+    name: n,
+    client: document.getElementById('bid-client').value || '—',
+    value: parseFloat(document.getElementById('bid-val').value) || null,
+    deadline: document.getElementById('bid-deadline').value || '—',
+    score: parseInt(document.getElementById('bid-score').value) || 0,
+    status: document.getElementById('bid-status').value
+  };
+ 
+  const { error } = await supabase
+    .from('bids')
+    .insert([bid]);
+ 
+  if (error) {
+    console.error(error);
+    alert('Failed to save bid');
+    return;
+  }
+ 
+  alert('Bid saved');
+  await loadBids();
+}
+
 function clearBidForm(){['bid-name','bid-client','bid-val','bid-deadline','bid-score'].forEach(id=>document.getElementById(id).value='')}
-function renderBids(){const body=document.getElementById('bid-body');if(!bids.length){body.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr>';}else{body.innerHTML=bids.map((b,i)=>`<tr><td style="font-weight:500">${b.name}</td><td>${b.client}</td><td>${b.val?'R '+b.val.toLocaleString():'—'}</td><td>${b.dl}</td><td><strong>${b.score}/100</strong></td><td>${b.score>=60?'<span class="badge bgo">GO</span>':b.score>0?'<span class="badge bnogo">No-Go</span>':'—'}</td><td><span class="badge bb">${b.status}</span></td><td><button class="btn bsm btnd" onclick="bids.splice(${i},1);renderBids()">✕</button></td></tr>`).join('');}updateMonKPIs();renderGNG()}
-function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;document.getElementById('m-pipeval').textContent=go.length?'R '+Math.round(go.reduce((s,b)=>s+b.val,0)/1000)+'k':'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
+function renderBids(){
+  const body=document.getElementById('bid-body');
+  if(!bids.length){
+    body.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr>';
+  } else {
+    body.innerHTML=bids.map((b)=>`<tr>
+      <td style="font-weight:500">${b.name}</td>
+      <td>${b.client}</td>
+      <td>${b.value != null ? 'R '+Number(b.value).toLocaleString() : '—'}</td>
+      <td>${b.deadline || '—'}</td>
+      <td><strong>${b.score}/100</strong></td>
+      <td>${b.score>=60?'<span class="badge bgo">GO</span>':b.score>0?'<span class="badge bnogo">No-Go</span>':'—'}</td>
+      <td><span class="badge bb">${b.status}</span></td>
+      <td><button class="btn bsm btnd" onclick="deleteBid(${b.id})">✕</button></td>
+    </tr>`).join('');
+  }
+  updateMonKPIs();
+  renderGNG();
+}
+
+
+function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;document.getElementById('m-pipeval').textContent=go.length?'R '+Math.round(go.reduce((s,b)=>s+b.value,0)/1000)+'k':'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
 function renderGNG(){const low=bids.filter(b=>b.score>0&&b.score<60);const el=document.getElementById('gng-list');el.innerHTML=low.length?low.map(b=>`<div class="ri"><div class="rag ra" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">${b.name}</div><div class="rsub">${b.client} · Score: ${b.score}/100 — review or improve</div></div><span class="badge ba">Review</span></div>`).join(''):'<div style="color:var(--faint);font-size:13px;padding:8px 0">No borderline bids requiring review</div>'}
 function toggleLib(){const e=document.getElementById('lib-edit');e.style.display=e.style.display==='none'?'block':'none'}
 function updateLib(){[['c','lc'],['v','lv'],['m','lm'],['s','ls'],['p','lp']].forEach(([k,id])=>{const v=Math.min(100,Math.max(0,parseInt(document.getElementById('le-'+k).value)||0));document.getElementById(id+'-bar').style.width=v+'%';document.getElementById(id+'-bar').className='pf '+(v>=70?'pfg':v>=40?'pfa':'pfr');document.getElementById(id+'-pct').textContent=v+'%'});document.getElementById('lib-edit').style.display='none'}
@@ -22,3 +71,170 @@ function updateFri(){const b=parseInt(document.getElementById('kf-b').value)||0;
 const customDecs=[];
 function saveDecision(){const t=document.getElementById('dec-txt').value.trim();if(!t)return;customDecs.push({t,p:document.getElementById('dec-pri').value});renderDecisions();document.getElementById('dec-txt').value='';document.getElementById('dec-form').style.display='none'}
 function renderDecisions(){const fixed=`<li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Approve Camden escalation — client call required this week</span></li><li><input type="checkbox"><span><span class="badge bnogo" style="margin-right:6px">High</span>Sign off Commercial &amp; Bid Manager appointment</span></li><li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Review overhead audit — confirm reductions</span></li><li><input type="checkbox"><span><span class="badge ba" style="margin-right:6px">Medium</span>Approve revolving bid fund R 100 000</span></li>`;document.getElementById('decision-list').innerHTML=fixed+customDecs.map(d=>{const cls=d.p==='High'?'bnogo':d.p==='Medium'?'ba':'bgo';return`<li><input type="checkbox"><span><span class="badge ${cls}" style="margin-right:6px">${d.p}</span>${d.t}</span></li>`}).join('')}
+
+async function deleteBid(id){
+  await supabase.from('bids').delete().eq('id', id);
+  await loadBids();
+}
+
+async function loadBids() {
+
+  const { data, error } = await supabase
+
+    .from('bids')
+
+    .select('*');
+ 
+  if (error) {
+
+    console.error(error);
+
+    return;
+
+  }
+ 
+  bids.length = 0;
+ 
+  data.forEach(b => bids.push(b));
+ 
+  renderBids();
+
+}
+
+
+// ── CRM ──────────────────────────────────────────────────────────────
+const contacts = [];
+
+async function addContact() {
+  const n = document.getElementById('crm-name').value.trim();
+  if (!n) return;
+  const contact = {
+    name: n,
+    company: document.getElementById('crm-company').value || '—',
+    role: document.getElementById('crm-role').value || '—',
+    phone: document.getElementById('crm-phone').value || '—',
+    email: document.getElementById('crm-email').value || '—',
+    stage: document.getElementById('crm-stage').value,
+    opportunity_value: parseInt(document.getElementById('crm-oppval-input').value) || 0,
+    followup_date: document.getElementById('crm-followup').value || '—',
+    notes: document.getElementById('crm-notes').value || ''
+  };
+  const { error } = await supabase.from('contacts').insert([contact]);
+  if (error) { console.error(error); alert('Failed to save: ' + error.message); return; }
+  clearCRMForm();
+  await loadContacts();
+}
+
+function clearCRMForm() {
+  ['crm-name','crm-company','crm-role','crm-phone','crm-email','crm-oppval-input','crm-followup','crm-notes'].forEach(id => document.getElementById(id).value = '');
+}
+
+async function deleteContact(id) {
+  await supabase.from('contacts').delete().eq('id', id);
+  await loadContacts();
+}
+
+function renderContacts() {
+  const body = document.getElementById('crm-body');
+  if (!contacts.length) {
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--faint);padding:20px">No contacts yet. Add above.</td></tr>';
+  } else {
+    body.innerHTML = contacts.map(c => {
+      const stageClass = c.stage === 'Active Client' ? 'bgo' : c.stage === 'Lead' ? 'bb' : c.stage === 'Prospect' ? 'ba' : 'bnogo';
+      return `<tr>
+        <td style="font-weight:500">${c.name}</td>
+        <td>${c.company}</td>
+        <td>${c.role}</td>
+        <td>${c.phone}</td>
+        <td><span class="badge ${stageClass}">${c.stage}</span></td>
+        <td>${c.opportunity_value ? 'R ' + c.opportunity_value.toLocaleString() : '—'}</td>
+        <td>${c.followup_date}</td>
+        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.notes || '—'}</td>
+        <td><button class="btn bsm btnd" onclick="deleteContact(${c.id})">✕</button></td>
+      </tr>`;
+    }).join('');
+  }
+  updateCRMKPIs();
+  renderFollowUps();
+  renderPipelineBar();
+}
+
+function updateCRMKPIs() {
+  const opps = contacts.filter(c => c.stage !== 'Inactive');
+  const oppVal = opps.reduce((s, c) => s + (c.opportunity_value || 0), 0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = contacts.filter(c => {
+    if (!c.followup_date || c.followup_date === '—') return false;
+    const d = new Date(c.followup_date);
+    return d <= today;
+  });
+  const inactive = contacts.filter(c => c.stage === 'Inactive');
+  document.getElementById('crm-total').textContent = contacts.length;
+  document.getElementById('crm-opps').textContent = opps.length;
+  document.getElementById('crm-followups').textContent = due.length;
+  document.getElementById('crm-oppval').textContent = oppVal ? 'R ' + Math.round(oppVal/1000) + 'k' : 'R 0';
+  document.getElementById('crm-inactive').textContent = inactive.length;
+  document.getElementById('crm-count').textContent = contacts.length + ' contact' + (contacts.length !== 1 ? 's' : '');
+}
+
+function renderFollowUps() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = contacts.filter(c => {
+    if (!c.followup_date || c.followup_date === '—') return false;
+    return new Date(c.followup_date) <= today;
+  });
+  const el = document.getElementById('crm-followup-list');
+  el.innerHTML = due.length ? due.map(c => `
+    <div class="ri">
+      <div class="rag rr" style="margin-top:4px"></div>
+      <div style="flex:1;margin-left:8px">
+        <div class="rlbl">${c.name} — ${c.company}</div>
+        <div class="rsub">${c.role} · Follow-up: ${c.followup_date} · ${c.notes || 'No notes'}</div>
+      </div>
+      <span class="badge bnogo">Call now</span>
+    </div>`).join('') : '<div style="color:var(--faint);font-size:13px;padding:8px 0">No follow-ups due today</div>';
+}
+
+function renderPipelineBar() {
+  const stages = ['Lead', 'Prospect', 'Active Client', 'Inactive'];
+  const ids = ['lead', 'prospect', 'active', 'inactive'];
+  const total = contacts.length || 1;
+  stages.forEach((s, i) => {
+    const count = contacts.filter(c => c.stage === s).length;
+    const pct = Math.round((count / total) * 100);
+    document.getElementById('crm-bar-' + ids[i]).style.width = pct + '%';
+    document.getElementById('crm-n-' + ids[i]).textContent = count;
+  });
+}
+
+async function loadContacts() {
+  const { data, error } = await supabase.from('contacts').select('*');
+  if (error) { console.error(error); return; }
+  contacts.length = 0;
+  data.forEach(c => contacts.push(c));
+  renderContacts();
+}
+
+loadContacts();
+window.addBid = addBid;
+window.deleteBid = deleteBid;
+window.loadBids = loadBids;
+window.clearBidForm = clearBidForm;
+window.renderBids = renderBids;
+window.toggleLib = toggleLib;
+window.updateLib = updateLib;
+window.setRAG = setRAG;
+window.addProject = addProject;
+window.addCE = addCE;
+window.addBlocker = addBlocker;
+window.calcNet = calcNet;
+window.calcRet = calcRet;
+window.markPaid = markPaid;
+window.addDebtor = addDebtor;
+window.updateFri = updateFri;
+window.saveDecision = saveDecision;
+window.renderDecisions = renderDecisions;
+window.switchTab = switchTab;
+window.addContact = addContact;
+window.deleteContact = deleteContact;
+window.clearCRMForm = clearCRMForm;

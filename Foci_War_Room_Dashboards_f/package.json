@@ -1,0 +1,24 @@
+{
+  "name": "tender-war-room",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Onthatile28Nte/Tender-War-Room.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Onthatile28Nte/Tender-War-Room/issues"
+  },
+  "homepage": "https://github.com/Onthatile28Nte/Tender-War-Room#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.0"
+  }
+}

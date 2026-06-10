@@ -19,6 +19,7 @@
     <button class="tab active" onclick="switchTab('mon',this)"><div class="tdot" style="background:#818CF8"></div> Tender</button>
     <button class="tab" onclick="switchTab('tue',this)"><div class="tdot" style="background:#F59E0B"></div>Project Recovery</button>
     <button class="tab" onclick="switchTab('wed',this)"><div class="tdot" style="background:#10B981"></div>Cashflow</button>
+    <button class="tab" onclick="switchTab('crm',this)"><div class="tdot" style="background:#EC4899"></div>CRM</button>
     <button class="tab" onclick="switchTab('fri',this)"><div class="tdot" style="background:#3B82F6"></div>CEO Strategic</button>
   </div>
   <div class="topright">
@@ -327,6 +328,79 @@
   </div>
 </div>
 
-<script src="script.js"></script>
+<!-- CRM -->
+<div class="panel" id="panel-crm">
+  <div class="phdr">
+    <div class="picon" style="background:#FDF2F8">🤝</div>
+    <div><div class="ptitle">Client Relationship Manager</div><div class="psub">Track clients, interactions, and opportunities</div></div>
+    <div class="chair">Chair: Director</div>
+  </div>
+  <div class="kpis">
+    <div class="kc kn"><div class="klbl">Total contacts</div><div class="kval" id="crm-total">0</div></div>
+    <div class="kc kg"><div class="klbl">Active opportunities</div><div class="kval" id="crm-opps">0</div></div>
+    <div class="kc kgold"><div class="klbl">Follow-ups due</div><div class="kval ca" id="crm-followups">0</div><div class="ktgt">today or overdue</div></div>
+    <div class="kc kb"><div class="klbl">Opportunity value</div><div class="kval" id="crm-oppval" style="font-size:20px">R 0</div></div>
+    <div class="kc kr"><div class="klbl">Inactive contacts</div><div class="kval cr" id="crm-inactive">0</div><div class="ktgt">no contact 30+ days</div></div>
+  </div>
+  <div class="g2">
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Add contact</div></div>
+        <div class="fr">
+          <div class="fg" style="flex:2"><label>Full name</label><input type="text" id="crm-name" placeholder="e.g. John Dlamini"></div>
+          <div class="fg"><label>Company</label><input type="text" id="crm-company" placeholder="e.g. Eskom"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Role / Title</label><input type="text" id="crm-role" placeholder="e.g. SPM"></div>
+          <div class="fg"><label>Phone</label><input type="text" id="crm-phone" placeholder="+27..."></div>
+          <div class="fg"><label>Email</label><input type="text" id="crm-email" placeholder="name@company.com"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Stage</label><select id="crm-stage"><option>Lead</option><option>Prospect</option><option>Active Client</option><option>Inactive</option></select></div>
+          <div class="fg"><label>Opportunity value (R)</label><input type="number" id="crm-oppval-input" placeholder="0"></div>
+          <div class="fg"><label>Follow-up date</label><input type="text" id="crm-followup" placeholder="DD Mon YYYY"></div>
+        </div>
+        <div class="fr">
+          <div class="fg" style="flex:3"><label>Notes</label><input type="text" id="crm-notes" placeholder="Last discussion, key interests, next steps..."></div>
+        </div>
+        <div style="display:flex;gap:8px"><button class="btn btnp" onclick="addContact()">Add contact</button><button class="btn" onclick="clearCRMForm()">Clear</button></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Contact register</div><span class="badge bnavy" id="crm-count">0 contacts</span></div>
+        <div style="overflow-x:auto">
+          <table id="crm-table">
+            <thead><tr><th>Name</th><th>Company</th><th>Role</th><th>Phone</th><th>Stage</th><th>Opp. Value</th><th>Follow-up</th><th>Notes</th><th></th></tr></thead>
+            <tbody id="crm-body"><tr><td colspan="9" style="text-align:center;color:var(--faint);padding:20px">No contacts yet. Add above.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Follow-ups due</div></div>
+        <div id="crm-followup-list"><div style="color:var(--faint);font-size:13px;padding:8px 0">No follow-ups due</div></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">Pipeline by stage</div></div>
+        <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">Lead</div><div class="prog" style="margin-top:5px"><div class="pf pfb" id="crm-bar-lead" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="crm-n-lead">0</span></div>
+        <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">Prospect</div><div class="prog" style="margin-top:5px"><div class="pf pfa" id="crm-bar-prospect" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="crm-n-prospect">0</span></div>
+        <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">Active Client</div><div class="prog" style="margin-top:5px"><div class="pf pfg" id="crm-bar-active" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="crm-n-active">0</span></div>
+        <div class="ri" style="align-items:center"><div style="flex:1"><div class="rlbl">Inactive</div><div class="prog" style="margin-top:5px"><div class="pf pfr" id="crm-bar-inactive" style="width:0%"></div></div></div><span style="font-size:12px;color:var(--muted);min-width:32px;text-align:right" id="crm-n-inactive">0</span></div>
+      </div>
+      <div class="card">
+        <div class="chdr"><div class="ctitle">CRM actions</div></div>
+        <ul class="cl">
+          <li><input type="checkbox"><span>Call all contacts with follow-up due today</span></li>
+          <li><input type="checkbox"><span>Update stage for any recently closed opportunities</span></li>
+          <li><input type="checkbox"><span>Add notes after every client interaction</span></li>
+          <li><input type="checkbox"><span>Review inactive contacts — re-engage or archive</span></li>
+          <li><input type="checkbox"><span>Identify 2 new leads to add this week</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="script.js"></script>
 </body>
 </html>
