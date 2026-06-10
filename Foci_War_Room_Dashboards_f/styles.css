@@ -81,3 +81,52 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 .furl{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
 .furl:last-child{border-bottom:none}
 .fulbl{font-size:13px;font-weight:500;flex:1}
+
+/* --- Responsive Media Queries --- */
+
+/* Tablets and Small Desktops */
+@media (max-width: 1024px) {
+    .g2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile Devices (Portrait and Landscape) */
+@media (max-width: 768px) {
+    .topbar {
+        height: auto;
+        flex-direction: column;
+        padding: 0 16px;
+        align-items: flex-start;
+    }
+    .brand {
+        width: 100%;
+        padding: 12px 0;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-right: 0;
+    }
+    .tabs {
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none; /* Hide scrollbar Firefox */
+    }
+    .tabs::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome/Safari */
+    .tab { padding: 12px 16px; }
+    .topright { margin-left: 0; padding: 10px 0; width: 100%; justify-content: flex-start; }
+    .panel { padding: 16px 20px; }
+    .phdr { flex-wrap: wrap; }
+    .chair { margin-left: 0; margin-top: 8px; width: 100%; text-align: center; }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .kval { font-size: 22px; }
+    .kc { padding: 12px; }
+    .card { padding: 12px 14px; }
+    .cfr, .scr { 
+        grid-template-columns: 1fr; 
+        gap: 4px; 
+    }
+}
