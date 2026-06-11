@@ -44,7 +44,9 @@ function renderBids(){
   populateBidDropdown();
 }
 
-function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;document.getElementById('m-pipeval').textContent=go.length?'R '+Math.round(go.reduce((s,b)=>s+(b.value||0),0)/1000)+'k':'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
+function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;const pipeTotal = go.reduce((s,b)=>s+(b.value||0),0);
+const pipeFmt = pipeTotal >= 1000000 ? 'R '+( pipeTotal/1000000).toFixed(1)+'M' : pipeTotal >= 1000 ? 'R '+Math.round(pipeTotal/1000)+'k' : 'R '+pipeTotal.toLocaleString();
+document.getElementById('m-pipeval').textContent = go.length ? pipeFmt : 'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
 function renderGNG(){const low=bids.filter(b=>b.score>0&&b.score<60);const el=document.getElementById('gng-list');el.innerHTML=low.length?low.map(b=>`<div class="ri"><div class="rag ra" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">${b.name}</div><div class="rsub">${b.client} · Score: ${b.score}/100 — review or improve</div></div><span class="badge ba">Review</span></div>`).join(''):'<div style="color:var(--faint);font-size:13px;padding:8px 0">No borderline bids requiring review</div>'}
 function toggleLib(){const e=document.getElementById('lib-edit');e.style.display=e.style.display==='none'?'block':'none'}
 function updateLib(){[['c','lc'],['v','lv'],['m','lm'],['s','ls'],['p','lp']].forEach(([k,id])=>{const v=Math.min(100,Math.max(0,parseInt(document.getElementById('le-'+k).value)||0));document.getElementById(id+'-bar').style.width=v+'%';document.getElementById(id+'-bar').className='pf '+(v>=70?'pfg':v>=40?'pfa':'pfr');document.getElementById(id+'-pct').textContent=v+'%'});document.getElementById('lib-edit').style.display='none'}
@@ -149,7 +151,8 @@ function updateCRMKPIs() {
   document.getElementById('crm-total').textContent = contacts.length;
   document.getElementById('crm-opps').textContent = opps.length;
   document.getElementById('crm-followups').textContent = due.length;
-  document.getElementById('crm-oppval').textContent = oppVal ? 'R ' + Math.round(oppVal/1000) + 'k' : 'R 0';
+  const oppFmt = oppVal >= 1000000 ? 'R '+(oppVal/1000000).toFixed(1)+'M' : oppVal >= 1000 ? 'R '+Math.round(oppVal/1000)+'k' : 'R '+oppVal.toLocaleString();
+document.getElementById('crm-oppval').textContent = oppVal ? oppFmt : 'R 0';
   document.getElementById('crm-inactive').textContent = inactive.length;
   document.getElementById('crm-count').textContent = contacts.length + ' contact' + (contacts.length !== 1 ? 's' : '');
 }
