@@ -6,7 +6,7 @@
 <title>Foci Group — War Room Dashboards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=1"> <!-- Added version for cache busting -->
 </head>
 <body>
 
@@ -15,12 +15,12 @@
     <div class="bmark">FG</div>
     <div><div class="btxt">FOCI GROUP</div><div class="bsub">War Room Dashboards</div></div>
   </div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('mon',this)"><div class="tdot" style="background:#818CF8"></div> Tender</button>
-    <button class="tab" onclick="switchTab('tue',this)"><div class="tdot" style="background:#F59E0B"></div>Project Recovery</button>
-    <button class="tab" onclick="switchTab('wed',this)"><div class="tdot" style="background:#10B981"></div>Cashflow</button>
-    <button class="tab" onclick="switchTab('crm',this)"><div class="tdot" style="background:#EC4899"></div>CRM</button>
-    <button class="tab" onclick="switchTab('fri',this)"><div class="tdot" style="background:#3B82F6"></div>CEO Strategic</button>
+  <div class="tabs" role="tablist">
+    <button class="tab active" role="tab" aria-selected="true" data-tab-id="mon" onclick="switchTab('mon',this)"><div class="tdot" style="background:#818CF8"></div> Tender</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="tue" onclick="switchTab('tue',this)"><div class="tdot" style="background:#F59E0B"></div>Project Recovery</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="wed" onclick="switchTab('wed',this)"><div class="tdot" style="background:#10B981"></div>Cashflow</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="crm" onclick="switchTab('crm',this)"><div class="tdot" style="background:#EC4899"></div>CRM</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="fri" onclick="switchTab('fri',this)"><div class="tdot" style="background:#3B82F6"></div>CEO Strategic</button>
   </div>
   <div class="topright">
     <span style="font-size:12px;color:rgba(255,255,255,.4)">Week of:</span>
@@ -52,7 +52,7 @@
         </div>
         <div class="fr">
           <div class="fg"><label>Est. value (R)</label><input type="number" id="bid-val" placeholder="0"></div>
-          <div class="fg"><label>Deadline</label><input type="text" id="bid-deadline" placeholder="DD Mon YYYY"></div>
+          <input type="date" id="bid-deadline" style="font-family:'Barlow',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);width:100%;">
           <div class="fg"><label>Score /100</label><input type="number" id="bid-score" min="0" max="100" placeholder="0–100"></div>
           <div class="fg"><label>Status</label><select id="bid-status"><option>In preparation</option><option>Submitted</option><option>Pending award</option><option>Awarded</option><option>Lost</option></select></div>
         </div>
@@ -60,7 +60,7 @@
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Bid register</div><span class="badge bnavy" id="bid-count">0 bids</span></div>
-        <div style="overflow-x:auto">
+        <div class="table-wrapper">
           <table id="bid-table">
             <thead><tr><th>Tender</th><th>Client</th><th>Value</th><th>Deadline</th><th>Score</th><th>Decision</th><th>Status</th><th></th></tr></thead>
             <tbody id="bid-body"><tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr></tbody>
@@ -142,11 +142,13 @@
           <div class="fg" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btnp" onclick="addCE()">Add CE</button></div>
         </div>
         <table><thead><tr><th>Project</th><th>Description</th><th>Value</th><th>Age</th><th>Action</th><th></th></tr></thead>
-        <tbody id="ce-body">
-          <tr><td>Majuba</td><td>Additional scope — thermal insulation</td><td>R 380 000</td><td>14 days</td><td><span class="badge ba">Submit</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
-          <tr><td>Camden</td><td>Delayed access — client instruction</td><td>R 620 000</td><td>28 days</td><td><span class="badge bnogo">Escalate</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
-          <tr><td>Ingula</td><td>Design variation — pump housing</td><td>R 95 000</td><td>7 days</td><td><span class="badge bgo">Approved</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
-        </tbody></table>
+        <div class="table-wrapper">
+          <tbody id="ce-body">
+            <tr><td>Majuba</td><td>Additional scope — thermal insulation</td><td>R 380 000</td><td>14 days</td><td><span class="badge ba">Submit</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+            <tr><td>Camden</td><td>Delayed access — client instruction</td><td>R 620 000</td><td>28 days</td><td><span class="badge bnogo">Escalate</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+            <tr><td>Ingula</td><td>Design variation — pump housing</td><td>R 95 000</td><td>7 days</td><td><span class="badge bgo">Approved</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+          </tbody></table>
+        </div>
       </div>
     </div>
     <div class="col">
@@ -165,11 +167,13 @@
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Client escalation matrix</div></div>
-        <table><thead><tr><th>Project</th><th>Issue</th><th>Level</th><th>Next action</th><th>When</th></tr></thead>
-        <tbody>
-          <tr><td>Camden</td><td>CE approval</td><td><span class="badge bnogo">Director</span></td><td>Call Eskom SPM</td><td>This week</td></tr>
-          <tr><td>Majuba</td><td>Certificate</td><td><span class="badge ba">Ops Coord</span></td><td>Email chase</td><td>Today</td></tr>
-        </tbody></table>
+        <div class="table-wrapper">
+          <table><thead><tr><th>Project</th><th>Issue</th><th>Level</th><th>Next action</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td>Camden</td><td>CE approval</td><td><span class="badge bnogo">Director</span></td><td>Call Eskom SPM</td><td>This week</td></tr>
+            <tr><td>Majuba</td><td>Certificate</td><td><span class="badge ba">Ops Coord</span></td><td>Email chase</td><td>Today</td></tr>
+          </tbody></table>
+        </div>
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Tuesday actions</div></div>
@@ -358,7 +362,7 @@
         <div class="fr">
           <div class="fg"><label>Stage</label><select id="crm-stage"><option>Lead</option><option>Prospect</option><option>Active Client</option><option>Inactive</option></select></div>
           <div class="fg"><label>Opportunity value (R)</label><input type="number" id="crm-oppval-input" placeholder="0"></div>
-          <div class="fg"><label>Follow-up date</label><input type="text" id="crm-followup" placeholder="DD Mon YYYY"></div>
+          <input type="date" id="crm-followup" style="font-family:'Barlow',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);width:100%;">
         </div>
         <div class="fr">
           <div class="fg" style="flex:3"><label>Notes</label><input type="text" id="crm-notes" placeholder="Last discussion, key interests, next steps..."></div>
@@ -367,7 +371,7 @@
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Contact register</div><span class="badge bnavy" id="crm-count">0 contacts</span></div>
-        <div style="overflow-x:auto">
+        <div class="table-wrapper">
           <table id="crm-table">
             <thead><tr><th>Name</th><th>Company</th><th>Role</th><th>Phone</th><th>Stage</th><th>Opp. Value</th><th>Follow-up</th><th>Notes</th><th></th></tr></thead>
             <tbody id="crm-body"><tr><td colspan="9" style="text-align:center;color:var(--faint);padding:20px">No contacts yet. Add above.</td></tr></tbody>

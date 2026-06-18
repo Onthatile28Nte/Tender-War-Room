@@ -1,12 +1,12 @@
 import { supabase } from "./supabase.js";
 
 function switchTab(id,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('panel-'+id).classList.add('active')}
+
 const bids=[];
+
 async function addBid() {
   const n = document.getElementById('bid-name').value.trim();
- 
   if (!n) return;
- 
   const bid = {
     name: n,
     client: document.getElementById('bid-client').value || '—',
@@ -15,28 +15,20 @@ async function addBid() {
     score: parseInt(document.getElementById('bid-score').value) || 0,
     status: document.getElementById('bid-status').value
   };
- 
-  const { error } = await supabase
-    .from('bids')
-    .insert([bid]);
- 
-  if (error) {
-    console.error(error);
-    alert('Failed to save bid');
-    return;
-  }
- 
-  alert('Bid saved');
+  const { error } = await supabase.from('bids').insert([bid]);
+  if (error) { console.error(error); alert('Failed to save bid'); return; }
+  clearBidForm();
   await loadBids();
 }
 
 function clearBidForm(){['bid-name','bid-client','bid-val','bid-deadline','bid-score'].forEach(id=>document.getElementById(id).value='')}
+
 function renderBids(){
   const body=document.getElementById('bid-body');
   if(!bids.length){
     body.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr>';
   } else {
-    body.innerHTML=bids.map((b)=>`<tr>
+    body.innerHTML=bids.map((b)=>`<tr style="cursor:pointer" onclick="openBidModal(${b.id})">
       <td style="font-weight:500">${b.name}</td>
       <td>${b.client}</td>
       <td>${b.value != null ? 'R '+Number(b.value).toLocaleString() : '—'}</td>
@@ -44,15 +36,17 @@ function renderBids(){
       <td><strong>${b.score}/100</strong></td>
       <td>${b.score>=60?'<span class="badge bgo">GO</span>':b.score>0?'<span class="badge bnogo">No-Go</span>':'—'}</td>
       <td><span class="badge bb">${b.status}</span></td>
-      <td><button class="btn bsm btnd" onclick="deleteBid(${b.id})">✕</button></td>
+      <td><button class="btn bsm btnd" onclick="event.stopPropagation();deleteBid(${b.id})">✕</button></td>
     </tr>`).join('');
   }
   updateMonKPIs();
   renderGNG();
+  populateBidDropdown();
 }
 
-
-function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;document.getElementById('m-pipeval').textContent=go.length?'R '+Math.round(go.reduce((s,b)=>s+b.value,0)/1000)+'k':'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
+function updateMonKPIs(){const go=bids.filter(b=>b.score>=60);const nogo=bids.filter(b=>b.score>0&&b.score<60);const sub=bids.filter(b=>b.status==='Submitted'||b.status==='Awarded').length;document.getElementById('m-pipeline').textContent=bids.length;document.getElementById('m-submitted').textContent=sub;document.getElementById('m-go').textContent=go.length;document.getElementById('m-nogo').textContent=nogo.length;const pipeTotal = go.reduce((s,b)=>s+(b.value||0),0);
+const pipeFmt = pipeTotal >= 1000000 ? 'R '+( pipeTotal/1000000).toFixed(1)+'M' : pipeTotal >= 1000 ? 'R '+Math.round(pipeTotal/1000)+'k' : 'R '+pipeTotal.toLocaleString();
+document.getElementById('m-pipeval').textContent = go.length ? pipeFmt : 'R 0';document.getElementById('bid-count').textContent=bids.length+' bid'+(bids.length!==1?'s':'')}
 function renderGNG(){const low=bids.filter(b=>b.score>0&&b.score<60);const el=document.getElementById('gng-list');el.innerHTML=low.length?low.map(b=>`<div class="ri"><div class="rag ra" style="margin-top:4px"></div><div style="flex:1;margin-left:8px"><div class="rlbl">${b.name}</div><div class="rsub">${b.client} · Score: ${b.score}/100 — review or improve</div></div><span class="badge ba">Review</span></div>`).join(''):'<div style="color:var(--faint);font-size:13px;padding:8px 0">No borderline bids requiring review</div>'}
 function toggleLib(){const e=document.getElementById('lib-edit');e.style.display=e.style.display==='none'?'block':'none'}
 function updateLib(){[['c','lc'],['v','lv'],['m','lm'],['s','ls'],['p','lp']].forEach(([k,id])=>{const v=Math.min(100,Math.max(0,parseInt(document.getElementById('le-'+k).value)||0));document.getElementById(id+'-bar').style.width=v+'%';document.getElementById(id+'-bar').className='pf '+(v>=70?'pfg':v>=40?'pfa':'pfr');document.getElementById(id+'-pct').textContent=v+'%'});document.getElementById('lib-edit').style.display='none'}
@@ -78,29 +72,14 @@ async function deleteBid(id){
 }
 
 async function loadBids() {
-
-  const { data, error } = await supabase
-
-    .from('bids')
-
-    .select('*');
- 
-  if (error) {
-
-    console.error(error);
-
-    return;
-
-  }
- 
+  const { data, error } = await supabase.from('bids').select('*');
+  if (error) { console.error(error); return; }
   bids.length = 0;
- 
   data.forEach(b => bids.push(b));
- 
   renderBids();
-
 }
 
+loadBids();
 
 // ── CRM ──────────────────────────────────────────────────────────────
 const contacts = [];
@@ -141,7 +120,7 @@ function renderContacts() {
   } else {
     body.innerHTML = contacts.map(c => {
       const stageClass = c.stage === 'Active Client' ? 'bgo' : c.stage === 'Lead' ? 'bb' : c.stage === 'Prospect' ? 'ba' : 'bnogo';
-      return `<tr>
+      return `<tr style="cursor:pointer" onclick="openContactModal(${c.id})">
         <td style="font-weight:500">${c.name}</td>
         <td>${c.company}</td>
         <td>${c.role}</td>
@@ -150,13 +129,14 @@ function renderContacts() {
         <td>${c.opportunity_value ? 'R ' + c.opportunity_value.toLocaleString() : '—'}</td>
         <td>${c.followup_date}</td>
         <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.notes || '—'}</td>
-        <td><button class="btn bsm btnd" onclick="deleteContact(${c.id})">✕</button></td>
+        <td><button class="btn bsm btnd" onclick="event.stopPropagation();deleteContact(${c.id})">✕</button></td>
       </tr>`;
     }).join('');
   }
   updateCRMKPIs();
   renderFollowUps();
   renderPipelineBar();
+  populateContactDropdown();
 }
 
 function updateCRMKPIs() {
@@ -165,14 +145,14 @@ function updateCRMKPIs() {
   const today = new Date(); today.setHours(0,0,0,0);
   const due = contacts.filter(c => {
     if (!c.followup_date || c.followup_date === '—') return false;
-    const d = new Date(c.followup_date);
-    return d <= today;
+    return new Date(c.followup_date) <= today;
   });
   const inactive = contacts.filter(c => c.stage === 'Inactive');
   document.getElementById('crm-total').textContent = contacts.length;
   document.getElementById('crm-opps').textContent = opps.length;
   document.getElementById('crm-followups').textContent = due.length;
-  document.getElementById('crm-oppval').textContent = oppVal ? 'R ' + Math.round(oppVal/1000) + 'k' : 'R 0';
+  const oppFmt = oppVal >= 1000000 ? 'R '+(oppVal/1000000).toFixed(1)+'M' : oppVal >= 1000 ? 'R '+Math.round(oppVal/1000)+'k' : 'R '+oppVal.toLocaleString();
+document.getElementById('crm-oppval').textContent = oppVal ? oppFmt : 'R 0';
   document.getElementById('crm-inactive').textContent = inactive.length;
   document.getElementById('crm-count').textContent = contacts.length + ' contact' + (contacts.length !== 1 ? 's' : '');
 }
@@ -216,6 +196,164 @@ async function loadContacts() {
 }
 
 loadContacts();
+
+// ── Document upload helpers ───────────────────────────────────────────
+function renderDocsHTML(docs) {
+  if (!docs || !docs.length) return '<div style="color:var(--faint);font-size:13px">No documents uploaded yet</div>';
+  const catColors = { commercial: '#DBEAFE', technical: '#DCFCE7', financial: '#FEF3C7' };
+  const catText   = { commercial: '#1D4ED8', technical: '#15803D', financial: '#B45309' };
+  return docs.map(d => `
+    <div class="doc-item">
+      <span>📄</span>
+      <a href="${d.url}" target="_blank" style="flex:1;color:var(--navy);text-decoration:none;font-weight:500">${d.name}</a>
+      <span class="doc-cat" style="background:${catColors[d.category]||'#f3f4f6'};color:${catText[d.category]||'#374151'}">${d.category.charAt(0).toUpperCase()+d.category.slice(1)}</span>
+    </div>`).join('');
+}
+
+async function uploadDoc(file, category, recordId, recordType) {
+  const filePath = `${recordType}/${recordId}/${category}/${Date.now()}_${file.name}`;
+  const { error: upErr } = await supabase.storage.from('documents').upload(filePath, file, { upsert: true });
+  if (upErr) { alert('Upload failed: ' + upErr.message); return false; }
+  const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+  const { error: dbErr } = await supabase.from('documents').insert([{
+    record_id: recordId, record_type: recordType,
+    name: file.name, category, url: urlData.publicUrl
+  }]);
+  if (dbErr) { alert('Failed to save document record: ' + dbErr.message); return false; }
+  return true;
+}
+
+function populateBidDropdown() {
+  const sel = document.getElementById('bid-doc-target');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— choose bid —</option>' +
+    bids.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+}
+
+function populateContactDropdown() {
+  const sel = document.getElementById('crm-doc-target');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— choose contact —</option>' +
+    contacts.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+async function uploadBidDoc() {
+  const recordId = document.getElementById('bid-doc-target').value;
+  const category = document.getElementById('bid-doc-cat').value;
+  const fileInput = document.getElementById('bid-doc-file');
+  if (!recordId) { alert('Please select a bid first.'); return; }
+  if (!fileInput.files.length) { alert('Please select a file.'); return; }
+  const files = Array.from(fileInput.files);
+  let successCount = 0;
+  for (const file of files) {
+    const ok = await uploadDoc(file, category, recordId, 'bid');
+    if (ok) successCount++;
+  }
+  fileInput.value = '';
+  updateFileLabel('bid-doc-file', 'bid-file-label');
+  if (successCount > 0) {
+    alert(successCount + ' document(s) uploaded successfully!');
+    await loadBidDocs(recordId);
+  }
+}
+
+async function uploadCRMDoc() {
+  const recordId = document.getElementById('crm-doc-target').value;
+  const category = document.getElementById('crm-doc-cat').value;
+  const fileInput = document.getElementById('crm-doc-file');
+  if (!recordId) { alert('Please select a contact first.'); return; }
+  if (!fileInput.files.length) { alert('Please select a file.'); return; }
+  const files = Array.from(fileInput.files);
+  let successCount = 0;
+  for (const file of files) {
+    const ok = await uploadDoc(file, category, recordId, 'crm');
+    if (ok) successCount++;
+  }
+  fileInput.value = '';
+  updateFileLabel('crm-doc-file', 'crm-file-label');
+  if (successCount > 0) {
+    alert(successCount + ' document(s) uploaded successfully!');
+    await loadCRMDocs(recordId);
+  }
+}
+
+function updateFileLabel(inputId, labelId) {
+  const input = document.getElementById(inputId);
+  const label = document.getElementById(labelId);
+  if (!label) return;
+  if (input.files.length === 0) {
+    label.textContent = '📂 Choose files';
+  } else if (input.files.length === 1) {
+    label.textContent = '📄 ' + input.files[0].name;
+  } else {
+    label.textContent = '📄 ' + input.files.length + ' files selected';
+  }
+}
+
+async function loadBidDocs(recordId) {
+  const { data } = await supabase.from('documents').select('*').eq('record_id', recordId).eq('record_type', 'bid');
+  const el = document.getElementById('bid-doc-list');
+  if (el) el.innerHTML = renderDocsHTML(data || []);
+}
+
+async function loadCRMDocs(recordId) {
+  const { data } = await supabase.from('documents').select('*').eq('record_id', recordId).eq('record_type', 'crm');
+  const el = document.getElementById('crm-doc-list');
+  if (el) el.innerHTML = renderDocsHTML(data || []);
+}
+
+// ── Bid modal ─────────────────────────────────────────────────────────
+async function openBidModal(id) {
+  const b = bids.find(x => x.id === id);
+  if (!b) return;
+  document.getElementById('bm-name').textContent = b.name;
+  document.getElementById('bm-sub').textContent = b.client + ' · ' + b.status;
+  const dec = b.score >= 60 ? '<span class="badge bgo">GO</span>' : b.score > 0 ? '<span class="badge bnogo">No-Go</span>' : '—';
+  document.getElementById('bm-rows').innerHTML = `
+    <div class="mrow"><div class="mlbl">Client</div><div class="mval">${b.client||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Est. Value</div><div class="mval">${b.value!=null?'R '+Number(b.value).toLocaleString():'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Deadline</div><div class="mval">${b.deadline||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Score</div><div class="mval">${b.score}/100</div></div>
+    <div class="mrow"><div class="mlbl">Decision</div><div class="mval">${dec}</div></div>
+    <div class="mrow"><div class="mlbl">Status</div><div class="mval"><span class="badge bb">${b.status}</span></div></div>
+    <div class="mrow"><div class="mlbl">Created</div><div class="mval">${b.created_at?new Date(b.created_at).toLocaleDateString():'—'}</div></div>`;
+  document.getElementById('bm-docs').innerHTML = '<div style="color:var(--faint);font-size:13px">Loading...</div>';
+  document.getElementById('bid-modal').classList.add('open');
+  const { data } = await supabase.from('documents').select('*').eq('record_id', id).eq('record_type', 'bid');
+  document.getElementById('bm-docs').innerHTML = renderDocsHTML(data || []);
+}
+
+// ── Contact modal ─────────────────────────────────────────────────────
+async function openContactModal(id) {
+  const c = contacts.find(x => x.id === id);
+  if (!c) return;
+  const stageClass = c.stage==='Active Client'?'bgo':c.stage==='Lead'?'bb':c.stage==='Prospect'?'ba':'bnogo';
+  document.getElementById('cm-name').textContent = c.name;
+  document.getElementById('cm-sub').textContent = c.role + ' · ' + c.company;
+  document.getElementById('cm-rows').innerHTML = `
+    <div class="mrow"><div class="mlbl">Company</div><div class="mval">${c.company||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Role</div><div class="mval">${c.role||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Phone</div><div class="mval">${c.phone||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Email</div><div class="mval">${c.email||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Stage</div><div class="mval"><span class="badge ${stageClass}">${c.stage}</span></div></div>
+    <div class="mrow"><div class="mlbl">Opp. Value</div><div class="mval">${c.opportunity_value?'R '+Number(c.opportunity_value).toLocaleString():'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Follow-up</div><div class="mval">${c.followup_date||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Notes</div><div class="mval" style="white-space:pre-wrap">${c.notes||'—'}</div></div>
+    <div class="mrow"><div class="mlbl">Added</div><div class="mval">${c.created_at?new Date(c.created_at).toLocaleDateString():'—'}</div></div>`;
+  document.getElementById('cm-docs').innerHTML = '<div style="color:var(--faint);font-size:13px">Loading...</div>';
+  document.getElementById('crm-modal').classList.add('open');
+  const { data } = await supabase.from('documents').select('*').eq('record_id', id).eq('record_type', 'crm');
+  document.getElementById('cm-docs').innerHTML = renderDocsHTML(data || []);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-bg').forEach(m => m.classList.remove('open'));
+});
+
 window.addBid = addBid;
 window.deleteBid = deleteBid;
 window.loadBids = loadBids;
@@ -238,3 +376,9 @@ window.switchTab = switchTab;
 window.addContact = addContact;
 window.deleteContact = deleteContact;
 window.clearCRMForm = clearCRMForm;
+window.openBidModal = openBidModal;
+window.openContactModal = openContactModal;
+window.closeModal = closeModal;
+window.uploadBidDoc = uploadBidDoc;
+window.uploadCRMDoc = uploadCRMDoc;
+window.updateFileLabel = updateFileLabel;
