@@ -6,28 +6,7 @@
 <title>Foci Group — War Room Dashboards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<style>
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:var(--surface);border-radius:14px;padding:28px 32px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.18)}
-.modal-close{position:absolute;top:16px;right:18px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--muted)}
-.modal-close:hover{background:var(--border)}
-.modal-title{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px}
-.modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
-.mrow{display:grid;grid-template-columns:140px 1fr;gap:6px 16px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;align-items:start}
-.mrow:last-child{border-bottom:none}
-.mlbl{font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
-.mval{color:var(--text)}
-.modal-docs{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
-.modal-docs-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
-.doc-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;margin-bottom:6px;font-size:13px}
-.doc-cat{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;margin-left:auto}
-.file-input-wrap{position:relative;display:inline-block}
-.file-input-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.file-input-label{display:flex;align-items:center;gap:6px;font-family:"Barlow",sans-serif;font-size:13px;font-weight:600;padding:7px 14px;border-radius:6px;border:1px dashed var(--navy2);background:var(--surface2);color:var(--navy);cursor:pointer;transition:all .12s;white-space:nowrap}
-.file-input-label:hover{background:#E8ECFA;border-color:var(--navy)}
-</style>
+<link rel="stylesheet" href="styles.css?v=1"> <!-- Added version for cache busting -->
 </head>
 <body>
 
@@ -36,12 +15,12 @@
     <div class="bmark">FG</div>
     <div><div class="btxt">FOCI GROUP</div><div class="bsub">War Room Dashboards</div></div>
   </div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('mon',this)"><div class="tdot" style="background:#818CF8"></div> Tender</button>
-    <button class="tab" onclick="switchTab('tue',this)"><div class="tdot" style="background:#F59E0B"></div>Project Recovery</button>
-    <button class="tab" onclick="switchTab('wed',this)"><div class="tdot" style="background:#10B981"></div>Cashflow</button>
-    <button class="tab" onclick="switchTab('crm',this)"><div class="tdot" style="background:#EC4899"></div>CRM</button>
-    <button class="tab" onclick="switchTab('fri',this)"><div class="tdot" style="background:#3B82F6"></div>CEO Strategic</button>
+  <div class="tabs" role="tablist">
+    <button class="tab active" role="tab" aria-selected="true" data-tab-id="mon" onclick="switchTab('mon',this)"><div class="tdot" style="background:#818CF8"></div> Tender</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="tue" onclick="switchTab('tue',this)"><div class="tdot" style="background:#F59E0B"></div>Project Recovery</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="wed" onclick="switchTab('wed',this)"><div class="tdot" style="background:#10B981"></div>Cashflow</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="crm" onclick="switchTab('crm',this)"><div class="tdot" style="background:#EC4899"></div>CRM</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab-id="fri" onclick="switchTab('fri',this)"><div class="tdot" style="background:#3B82F6"></div>CEO Strategic</button>
   </div>
   <div class="topright">
     <span style="font-size:12px;color:rgba(255,255,255,.4)">Week of:</span>
@@ -78,20 +57,10 @@
           <div class="fg"><label>Status</label><select id="bid-status"><option>In preparation</option><option>Submitted</option><option>Pending award</option><option>Awarded</option><option>Lost</option></select></div>
         </div>
         <div style="display:flex;gap:8px"><button class="btn btnp" onclick="addBid()">Add bid</button><button class="btn" onclick="clearBidForm()">Clear</button></div>
-<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-  <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Upload document to a bid</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-    <div class="fg" style="min-width:160px"><label>Select bid</label><select id="bid-doc-target" style="font-size:13px;padding:7px 10px"><option value="">— choose bid —</option></select></div>
-    <div class="fg" style="min-width:130px"><label>Category</label><select id="bid-doc-cat" style="font-size:13px;padding:7px 10px"><option value="commercial">📘 Commercial</option><option value="technical">📗 Technical</option><option value="financial">📙 Financial</option></select></div>
-    <div class="fg" style="min-width:140px"><label>File</label><div class="file-input-wrap"><span class="file-input-label" id="bid-file-label">📂 Choose files</span><input type="file" id="bid-doc-file" multiple onchange="updateFileLabel('bid-doc-file','bid-file-label')"></div></div>
-    <button class="btn btnp" onclick="uploadBidDoc()">Upload</button>
-  </div>
-  <div id="bid-doc-list" style="margin-top:10px"></div>
-</div>
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Bid register</div><span class="badge bnavy" id="bid-count">0 bids</span></div>
-        <div style="overflow-x:auto">
+        <div class="table-wrapper">
           <table id="bid-table">
             <thead><tr><th>Tender</th><th>Client</th><th>Value</th><th>Deadline</th><th>Score</th><th>Decision</th><th>Status</th><th></th></tr></thead>
             <tbody id="bid-body"><tr><td colspan="8" style="text-align:center;color:var(--faint);padding:20px">No bids logged. Add above.</td></tr></tbody>
@@ -173,11 +142,13 @@
           <div class="fg" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btnp" onclick="addCE()">Add CE</button></div>
         </div>
         <table><thead><tr><th>Project</th><th>Description</th><th>Value</th><th>Age</th><th>Action</th><th></th></tr></thead>
-        <tbody id="ce-body">
-          <tr><td>Majuba</td><td>Additional scope — thermal insulation</td><td>R 380 000</td><td>14 days</td><td><span class="badge ba">Submit</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
-          <tr><td>Camden</td><td>Delayed access — client instruction</td><td>R 620 000</td><td>28 days</td><td><span class="badge bnogo">Escalate</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
-          <tr><td>Ingula</td><td>Design variation — pump housing</td><td>R 95 000</td><td>7 days</td><td><span class="badge bgo">Approved</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
-        </tbody></table>
+        <div class="table-wrapper">
+          <tbody id="ce-body">
+            <tr><td>Majuba</td><td>Additional scope — thermal insulation</td><td>R 380 000</td><td>14 days</td><td><span class="badge ba">Submit</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+            <tr><td>Camden</td><td>Delayed access — client instruction</td><td>R 620 000</td><td>28 days</td><td><span class="badge bnogo">Escalate</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+            <tr><td>Ingula</td><td>Design variation — pump housing</td><td>R 95 000</td><td>7 days</td><td><span class="badge bgo">Approved</span></td><td><button class="btn bsm btnd" onclick="this.closest('tr').remove()">✕</button></td></tr>
+          </tbody></table>
+        </div>
       </div>
     </div>
     <div class="col">
@@ -196,11 +167,13 @@
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Client escalation matrix</div></div>
-        <table><thead><tr><th>Project</th><th>Issue</th><th>Level</th><th>Next action</th><th>When</th></tr></thead>
-        <tbody>
-          <tr><td>Camden</td><td>CE approval</td><td><span class="badge bnogo">Director</span></td><td>Call Eskom SPM</td><td>This week</td></tr>
-          <tr><td>Majuba</td><td>Certificate</td><td><span class="badge ba">Ops Coord</span></td><td>Email chase</td><td>Today</td></tr>
-        </tbody></table>
+        <div class="table-wrapper">
+          <table><thead><tr><th>Project</th><th>Issue</th><th>Level</th><th>Next action</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td>Camden</td><td>CE approval</td><td><span class="badge bnogo">Director</span></td><td>Call Eskom SPM</td><td>This week</td></tr>
+            <tr><td>Majuba</td><td>Certificate</td><td><span class="badge ba">Ops Coord</span></td><td>Email chase</td><td>Today</td></tr>
+          </tbody></table>
+        </div>
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Tuesday actions</div></div>
@@ -313,8 +286,8 @@
         <div class="scr"><span>Awards pending (#)</span><input type="number" id="kf-aw" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">Track</span></div>
         <div class="scr"><span>War rooms held</span><input type="number" id="kf-wr" min="0" max="4" placeholder="0" oninput="updateFri()" style="width:80px;font-size:13px;padding:5px 8px;text-align:right"><span style="font-size:12px;color:var(--muted);text-align:right">4 per week</span></div>
         <div class="scr" style="border-top:1.5px solid var(--border);margin-top:6px;padding-top:12px">
-          <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;text-align:right" id="f-calc">—</span>
           <span style="font-weight:600">Overhead ratio (auto)</span><span></span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;text-align:right" id="f-calc">—</span>
         </div>
       </div>
     </div>
@@ -395,20 +368,10 @@
           <div class="fg" style="flex:3"><label>Notes</label><input type="text" id="crm-notes" placeholder="Last discussion, key interests, next steps..."></div>
         </div>
         <div style="display:flex;gap:8px"><button class="btn btnp" onclick="addContact()">Add contact</button><button class="btn" onclick="clearCRMForm()">Clear</button></div>
-<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-  <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Upload document to a contact</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-    <div class="fg" style="min-width:160px"><label>Select contact</label><select id="crm-doc-target" style="font-size:13px;padding:7px 10px"><option value="">— choose contact —</option></select></div>
-    <div class="fg" style="min-width:130px"><label>Category</label><select id="crm-doc-cat" style="font-size:13px;padding:7px 10px"><option value="commercial">📘 Commercial</option><option value="technical">📗 Technical</option><option value="financial">📙 Financial</option></select></div>
-    <div class="fg" style="min-width:140px"><label>File</label><div class="file-input-wrap"><span class="file-input-label" id="crm-file-label">📂 Choose files</span><input type="file" id="crm-doc-file" multiple onchange="updateFileLabel('crm-doc-file','crm-file-label')"></div></div>
-    <button class="btn btnp" onclick="uploadCRMDoc()">Upload</button>
-  </div>
-  <div id="crm-doc-list" style="margin-top:10px"></div>
-</div>
       </div>
       <div class="card">
         <div class="chdr"><div class="ctitle">Contact register</div><span class="badge bnavy" id="crm-count">0 contacts</span></div>
-        <div style="overflow-x:auto">
+        <div class="table-wrapper">
           <table id="crm-table">
             <thead><tr><th>Name</th><th>Company</th><th>Role</th><th>Phone</th><th>Stage</th><th>Opp. Value</th><th>Follow-up</th><th>Notes</th><th></th></tr></thead>
             <tbody id="crm-body"><tr><td colspan="9" style="text-align:center;color:var(--faint);padding:20px">No contacts yet. Add above.</td></tr></tbody>
@@ -442,33 +405,6 @@
   </div>
 </div>
 
-
-<!-- Bid detail modal -->
-<div class="modal-bg" id="bid-modal">
-  <div class="modal">
-    <div class="modal-close" onclick="closeModal('bid-modal')">✕</div>
-    <div class="modal-title" id="bm-name"></div>
-    <div class="modal-sub" id="bm-sub"></div>
-    <div id="bm-rows"></div>
-    <div class="modal-docs">
-      <div class="modal-docs-title">Uploaded documents</div>
-      <div id="bm-docs"><div style="color:var(--faint);font-size:13px">No documents uploaded yet</div></div>
-    </div>
-  </div>
-</div>
-<!-- Contact detail modal -->
-<div class="modal-bg" id="crm-modal">
-  <div class="modal">
-    <div class="modal-close" onclick="closeModal('crm-modal')">✕</div>
-    <div class="modal-title" id="cm-name"></div>
-    <div class="modal-sub" id="cm-sub"></div>
-    <div id="cm-rows"></div>
-    <div class="modal-docs">
-      <div class="modal-docs-title">Uploaded documents</div>
-      <div id="cm-docs"><div style="color:var(--faint);font-size:13px">No documents uploaded yet</div></div>
-    </div>
-  </div>
-</div>
 <script type="module" src="script.js"></script>
 </body>
 </html>
