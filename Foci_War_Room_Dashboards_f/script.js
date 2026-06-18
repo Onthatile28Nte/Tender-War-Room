@@ -210,16 +210,48 @@ function renderDocsHTML(docs) {
     </div>`).join('');
 }
 
-async function uploadDoc(file, category, recordId, recordType) {
-  const filePath = `${recordType}/${recordId}/${category}/${Date.now()}_${file.name}`;
-  const { error: upErr } = await supabase.storage.from('documents').upload(filePath, file, { upsert: true });
-  if (upErr) { alert('Upload failed: ' + upErr.message); return false; }
-  const { data: urlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+async function uploadDoc(file, category, recordId, recordType, recordName) {
+  // Convert file to base64
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  // Call Vercel serverless function to upload to SharePoint
+  const res = await fetch('/api/upload-to-sharepoint', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fileName: file.name,
+      fileBase64: base64,
+      category,
+      recordType,
+      recordName
+    })
+  });
+
+  const result = await res.json();
+  if (!result.success) {
+    alert('SharePoint upload failed: ' + result.error);
+    return false;
+  }
+
+  // Save document record to Supabase with SharePoint URL
   const { error: dbErr } = await supabase.from('documents').insert([{
-    record_id: recordId, record_type: recordType,
-    name: file.name, category, url: urlData.publicUrl
+    record_id: recordId,
+    record_type: recordType,
+    name: file.name,
+    category,
+    url: result.url
   }]);
-  if (dbErr) { alert('Failed to save document record: ' + dbErr.message); return false; }
+
+  if (dbErr) {
+    alert('Failed to save document record: ' + dbErr.message);
+    return false;
+  }
+
   return true;
 }
 
@@ -243,19 +275,25 @@ async function uploadBidDoc() {
   const fileInput = document.getElementById('bid-doc-file');
   if (!recordId) { alert('Please select a bid first.'); return; }
   if (!fileInput.files.length) { alert('Please select a file.'); return; }
+
+  // Get bid name for folder organization
+  const bid = bids.find(b => b.id == recordId);
+  const recordName = bid ? bid.name : 'Unknown Bid';
+
   const files = Array.from(fileInput.files);
   let successCount = 0;
   for (const file of files) {
-    const ok = await uploadDoc(file, category, recordId, 'bid');
+    const ok = await uploadDoc(file, category, recordId, 'bid', recordName);
     if (ok) successCount++;
   }
   fileInput.value = '';
   updateFileLabel('bid-doc-file', 'bid-file-label');
   if (successCount > 0) {
-    alert(successCount + ' document(s) uploaded successfully!');
+    alert(successCount + ' document(s) uploaded to SharePoint successfully!');
     await loadBidDocs(recordId);
   }
 }
+
 
 async function uploadCRMDoc() {
   const recordId = document.getElementById('crm-doc-target').value;
@@ -263,19 +301,25 @@ async function uploadCRMDoc() {
   const fileInput = document.getElementById('crm-doc-file');
   if (!recordId) { alert('Please select a contact first.'); return; }
   if (!fileInput.files.length) { alert('Please select a file.'); return; }
+
+  // Get contact name for folder organization
+  const contact = contacts.find(c => c.id == recordId);
+  const recordName = contact ? contact.name : 'Unknown Contact';
+
   const files = Array.from(fileInput.files);
   let successCount = 0;
   for (const file of files) {
-    const ok = await uploadDoc(file, category, recordId, 'crm');
+    const ok = await uploadDoc(file, category, recordId, 'crm', recordName);
     if (ok) successCount++;
   }
   fileInput.value = '';
   updateFileLabel('crm-doc-file', 'crm-file-label');
   if (successCount > 0) {
-    alert(successCount + ' document(s) uploaded successfully!');
+    alert(successCount + ' document(s) uploaded to SharePoint successfully!');
     await loadCRMDocs(recordId);
   }
 }
+
 
 function updateFileLabel(inputId, labelId) {
   const input = document.getElementById(inputId);
