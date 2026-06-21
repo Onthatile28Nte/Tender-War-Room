@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const TENANT_ID = process.env.SHAREPOINT_TENANT_ID;
     const CLIENT_ID = process.env.SHAREPOINT_CLIENT_ID;
     const CLIENT_SECRET = process.env.SHAREPOINT_CLIENT_SECRET;
-    const SITE_URL = 'https://m365focigroup.sharepoint.com/sites/Foci-War-Room-Site1/SitePages/CollabHome.aspx?market=en-US';
+   const SITE_URL = 'https://m365focigroup.sharepoint.com/sites/Foci-War-Room-Site1';
 
     // Step 1 — Get access token from Microsoft
     const tokenRes = await fetch(
@@ -40,10 +40,10 @@ export default async function handler(req, res) {
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
     // Step 2 — Get SharePoint site ID
-    const siteRes = await fetch(
-      `https://m365focigroup.sharepoint.com/sites/Foci-War-Room-Site1/SitePages/CollabHome.aspx?market=en-US`,
-      { headers }
-    );
+  const siteRes = await fetch(
+  `https://graph.microsoft.com/v1.0/sites/m365focigroup.sharepoint.com:/sites/Foci-War-Room-Site1`,
+  { headers }
+);
     const siteData = await siteRes.json();
     if (!siteData.id) {
       return res.status(500).json({ error: 'Could not find SharePoint site', detail: siteData });
