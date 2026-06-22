@@ -32,8 +32,11 @@ export default async function handler(req, res) {
 
     const tokenData = await tokenRes.json();
     if (!tokenData.access_token) {
-      console.error('Token error:', tokenData);
-      return res.status(401).json({ error: 'Failed to get access token', detail: tokenData });
+      console.error('Token error:', JSON.stringify(tokenData));
+      return res.status(401).json({
+        error: 'Failed to get access token: ' + (tokenData.error_description || JSON.stringify(tokenData)),
+        detail: tokenData
+      });
     }
 
     const token = tokenData.access_token;
@@ -46,7 +49,11 @@ export default async function handler(req, res) {
 );
     const siteData = await siteRes.json();
     if (!siteData.id) {
-      return res.status(500).json({ error: 'Could not find SharePoint site', detail: siteData });
+      console.error('SharePoint site lookup failed:', JSON.stringify(siteData));
+      return res.status(500).json({
+        error: 'Could not find SharePoint site: ' + (siteData.error?.message || JSON.stringify(siteData)),
+        detail: siteData
+      });
     }
     const siteId = siteData.id;
 
