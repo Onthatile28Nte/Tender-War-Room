@@ -219,18 +219,20 @@ async function uploadDoc(file, category, recordId, recordType, recordName) {
     reader.readAsDataURL(file);
   });
 
-  // Call Vercel serverless function to upload to SharePoint
-  const res = await fetch('/api/upload-to-sharepoint', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      fileName: file.name,
-      fileBase64: base64,
-      category,
-      recordType,
-      recordName
-    })
-  });
+ const res = await fetch('https://blqhhrumgsblakzxjuaa.supabase.co/functions/v1/upload-to-sharepoint', {
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJscWhocnVtZ3NibGFrenhqdWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MTU2NDIsImV4cCI6MjA5NjQ5MTY0Mn0.9GGT_au6CqkV3oeQXI4TO8iYzx24_qqEfSS5WFtssVM'
+  },
+  method: 'POST',
+  body: JSON.stringify({
+    fileName: file.name,
+    fileBase64: base64,
+    category,
+    recordType,
+    recordName
+  })
+ });
 
   const result = await res.json();
   if (!result.success) {
