@@ -1,7 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/Foci_War_Room_Dashboards_f/api/$1" },
     { "source": "/(.*)", "destination": "/Foci_War_Room_Dashboards_f/$1" }
   ]
 }
-
